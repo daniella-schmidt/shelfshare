@@ -1,0 +1,107 @@
+// ShelfShare — modelo de dados
+// Tres entidades: User, Book e Trade. O `status` de Book e Trade controla
+// todo o fluxo de troca do sistema.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // A URL de conexao fica em prisma.config.ts — exigencia do Prisma 7.
+}
+
+// ----------------------------------------------------------------- enums
+
+enum BookCondition {
+  NOVO
+  OTIMO
+  BOM
+  DESGASTADO
+}
+
+enum BookStatus {
+  DISPONIVEL
+  RESERVADO
+  TROCADO
+}
+
+enum TradeStatus {
+  PENDENTE
+  ACEITA
+  RECUSADA
+  CANCELADA
+  CONCLUIDA
+}
+
+// ---------------------------------------------------------------- models
+
+model User {
+  id           String  @id @default(uuid())
+  name         String
+  email        String  @unique
+  passwordHash String
+  phone        String?
+  city         String
+  state        String  @db.Char(2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  books          Book[]
+  tradesProposed Trade[] @relation("TradesProposed")
+  tradesReceived Trade[] @relation("TradesReceived")
+
+  @@map("users")
+}
+
+model Book {
+  id          String        @id @default(uuid())
+  ownerId     String
+  title       String
+  author      String
+  isbn        String?
+  condition   BookCondition
+  description String?
+  coverUrl    String?
+  status      BookStatus    @default(DISPONIVEL)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id])
+
+  offeredIn   Trade[] @relation("OfferedBook")
+  requestedIn Trade[] @relation("RequestedBook")
+
+  @@index([ownerId])
+  @@index([status])
+  @@map("books")
+}
+
+model Trade {
+  id              String @id @default(uuid())
+  proposerId      String
+  receiverId      String
+  offeredBookId   String
+  requestedBookId String
+
+  status            TradeStatus @default(PENDENTE)
+  message           String?
+  proposerConfirmed Boolean     @default(false)
+  receiverConfirmed Boolean     @default(false)
+
+  respondedAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  proposer      User @relation("TradesProposed", fields: [proposerId], references: [id])
+  receiver      User @relation("TradesReceived", fields: [receiverId], references: [id])
+  offeredBook   Book @relation("OfferedBook", fields: [offeredBookId], references: [id])
+  requestedBook Book @relation("RequestedBook", fields: [requestedBookId], references: [id])
+
+  @@index([receiverId, status])
+  @@index([proposerId, status])
+  @@map("trades")
+}
