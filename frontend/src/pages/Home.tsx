@@ -1,24 +1,27 @@
-import React from 'react';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import Hero from '../components/sections/Hero';
-import FeatureSection from '../components/sections/FeatureSection';
+import TrustBar from '../components/sections/TrustBar';
+import Features from '../components/sections/Features';
 import BookSlider from '../components/sections/BookSlider';
-import CategorySlider from '../components/sections/CategorySlider';
+import HowItWorks from '../components/sections/HowItWorks';
+import FAQ from '../components/sections/FAQ';
 import CTABanner from '../components/sections/CTABanner';
 
-const Home: React.FC = () => {
+export default function Home() {
   return (
     <>
       <Header />
-      <Hero />
-      <FeatureSection />
-      <BookSlider />
-      <CategorySlider />
-      <CTABanner />
+      <main>
+        <Hero />
+        <TrustBar />
+        <Features />
+        <BookSlider />
+        <HowItWorks />
+        <FAQ />
+        <CTABanner />
+      </main>
       <Footer />
     </>
   );
-};
-
-export default Home;
+}

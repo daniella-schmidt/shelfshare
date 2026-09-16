@@ -1,150 +1,181 @@
-// src/components/common/Header.tsx
-import React from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import AccessibilityMenu from './AccessibilityMenu';
+import NotificationBell from './NotificationBell';
+import ChatTrigger from './ChatTrigger';
+import ChatDrawer from './ChatDrawer';
+import catLogo from '../../assets/cat.png';
 
-const Header: React.FC = () => {
+const NAV_LINKS = [
+  { to: '/', label: 'Início' },
+  { to: '/livros', label: 'Explorar' },
+  { to: '/trocas', label: 'Trocas' },
+  { to: '/minha-estante', label: 'Minha Estante' },
+];
+
+export default function Header() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
+  function handleLogout() {
+    signOut();
+    setUserMenuOpen(false);
+    navigate('/');
+  }
+
+  const initials = user?.name
+    ?.split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() ?? '?';
+
   return (
     <>
-      {/* Top header - igual ao template */}
-      <div className="header-top-1">
-        <div className="container">
-          <div className="header-top-wrapper">
-            {/* Adicione aqui os elementos do cabeçalho superior, como informações de contato, links de login, etc.
-            <ul className="contact-list">
-              <li>
-                <i className="fa-regular fa-phone"></i>
-                <a href="tel:+20866660112">+208-6666-0112</a>
-              </li>
-              <li>
-                <i className="far fa-envelope"></i>
-                <a href="mailto:info@example.com">info@example.com</a>
-              </li>
-              <li>
-                <i className="far fa-clock"></i>
-                <span>Sunday - Fri: 9 aM - 6 pM</span>
-              </li>
-            </ul> */}
-            <ul className="list">
-              <li><i className="fa-light fa-comments"></i><a href="/contact">Live Chat</a></li>
-              <li><i className="fa-light fa-user"></i>
-                <button data-bs-toggle="modal" data-bs-target="#loginModal">
-                  Login
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <header className="site-header">
+        <div className="container site-header__inner">
+          <Link to="/" className="brand" aria-label="ShelfShare — Início">
+            <span className="brand__mark" aria-hidden>
+              <img src={catLogo} alt="" />
+            </span>
+            <span className="brand__name">
+              Shelf<em>Share</em>
+            </span>
+          </Link>
 
-      {/* Main header - estrutura original do Bookle */}
-      <header className="header-1">
-        <div className="mega-menu-wrapper">
-          <div className="header-main">
-            <div className="container">
-              <div className="row">
-                <div className="col-6 col-md-6 col-lg-10 col-xl-8 col-xxl-10">
-                  <div className="header-left">
-                    <div className="logo">
-                      <a href="/" className="header-logo">
-                        <img src="/assets/img/logo/white-logo.svg" alt="ShelfShare" />
-                      </a>
-                    </div>
-                    <div className="mean__menu-wrapper">
-                      <div className="main-menu">
-                        <nav>
-                          <ul>
-                            <li>
-                              <a href="/">
-                                Home
-                                <i className="fas fa-angle-down"></i>
-                              </a>
-                              <ul className="submenu">
-                                <li><a href="/">Home 01</a></li>
-                              </ul>
-                            </li>
-                            <li>
-                              <a href="/books">
-                                Livros
-                                <i className="fas fa-angle-down"></i>
-                              </a>
-                              <ul className="submenu">
-                                <li><a href="/books">Todos os Livros</a></li>
-                                <li><a href="/books?category=romance">Romance</a></li>
-                                <li><a href="/books?category=ficcao">Ficção</a></li>
-                                <li><a href="/books?category=aventura">Aventura</a></li>
-                              </ul>
-                            </li>
-                            <li className="has-dropdown">
-                              <a href="/about">
-                                Sobre
-                                <i className="fas fa-angle-down"></i>
-                              </a>
-                              <ul className="submenu">
-                                <li><a href="/about">Sobre Nós</a></li>
-                                <li className="has-dropdown">
-                                  <a href="/team">
-                                    Autores
-                                    <i className="fas fa-angle-down"></i>
-                                  </a>
-                                  <ul className="submenu">
-                                    <li><a href="/team">Autores</a></li>
-                                    <li><a href="/team-details">Perfil do Autor</a></li>
-                                  </ul>
-                                </li>
-                              </ul>
-                            </li>
-                            <li>
-                              <a href="/contact">Contato</a>
-                            </li>
-                          </ul>
-                        </nav>
-                      </div>
-                    </div>
+          <nav className="main-nav" aria-label="Navegação principal">
+            {NAV_LINKS.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) => (isActive ? 'is-active' : '')}
+                end={link.to === '/'}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="header-actions">
+            {user && <ChatTrigger />}
+            {user && <NotificationBell />}
+            <AccessibilityMenu />
+
+            {user ? (
+              <div className="user-menu" ref={userMenuRef}>
+                <button
+                  className="user-menu__trigger"
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={userMenuOpen}
+                >
+                  <span className="avatar avatar-sm">{initials}</span>
+                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                    {user.name?.split(' ')[0]}
+                  </span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+
+                {userMenuOpen && (
+                  <div className="user-menu__dropdown" role="menu">
+                    <Link to="/minha-estante" role="menuitem" onClick={() => setUserMenuOpen(false)}>
+                      Minha Estante
+                    </Link>
+                    <Link to="/trocas" role="menuitem" onClick={() => setUserMenuOpen(false)}>
+                      Minhas Trocas
+                    </Link>
+                    <div className="user-menu__divider" />
+                    <button onClick={handleLogout} role="menuitem">Sair</button>
                   </div>
-                </div>
-                <div className="col-6 col-md-6 col-lg-2 col-xl-4 col-xxl-2">
-                  <div className="header-right">
-                    <div className="category-oneadjust gap-6 d-flex align-items-center">
-                      <div className="icon">
-                        <i className="fa-sharp fa-solid fa-grid-2"></i>
-                      </div>
-                      <select name="cate" className="category">
-                        <option value="1">Categoria</option>
-                        <option value="1">Web Design</option>
-                        <option value="1">Web Development</option>
-                      </select>
-                      <form action="#" className="search-toggle-box d-md-block">
-                        <div className="input-area">
-                          <input type="text" placeholder="Buscar livro..." />
-                          <button className="cmn-btn">
-                            <i className="far fa-search"></i>
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                    <div className="menu-cart">
-                      <a href="/wishlist" className="cart-icon">
-                        <i className="fa-regular fa-heart"></i>
-                      </a>
-                      <a href="/cart" className="cart-icon">
-                        <i className="fa-regular fa-cart-shopping"></i>
-                      </a>
-                      <div className="header-humbager ml-30">
-                        <a className="sidebar__toggle" href="#">
-                          <div className="bar-icon-2">
-                            <img src="/assets/img/icon/icon-13.svg" alt="menu" />
-                          </div>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
-            </div>
+            ) : (
+              <>
+                <Link to="/login" className="btn btn-ghost btn-sm">Entrar</Link>
+                <Link to="/register" className="btn btn-accent btn-sm">Cadastrar</Link>
+              </>
+            )}
+
+            <button
+              className="menu-toggle"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Abrir menu"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
+
+      {menuOpen && (
+        <div className="mobile-nav" onClick={() => setMenuOpen(false)}>
+          <div className="mobile-nav__panel" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
+              <span className="brand">
+                <span className="brand__mark" aria-hidden>
+                  <img src={catLogo} alt="" />
+                </span>
+                <span className="brand__name">Shelf<em>Share</em></span>
+              </span>
+              <button onClick={() => setMenuOpen(false)} aria-label="Fechar menu" style={{ padding: 8 }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {NAV_LINKS.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                onClick={() => setMenuOpen(false)}
+                end={link.to === '/'}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+
+            {!user && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
+                <Link to="/login" className="btn btn-secondary" onClick={() => setMenuOpen(false)}>Entrar</Link>
+                <Link to="/register" className="btn btn-accent" onClick={() => setMenuOpen(false)}>Cadastrar</Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <ChatDrawer />
     </>
   );
-};
-
-export default Header;
+}

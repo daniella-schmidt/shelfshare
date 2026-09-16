@@ -1,6 +1,6 @@
 // ShelfShare — modelo de dados
 // Tres entidades: User, Book e Trade. O `status` de Book e Trade controla
-// todo o fluxo de troca do sistema.
+// todo o fluxo de troca do sistema. `Message` guarda o chat da troca.
 
 generator client {
   provider = "prisma-client-js"
@@ -45,12 +45,17 @@ model User {
   city         String
   state        String  @db.Char(2)
 
+  // password reset (migration 20260915222958_add_password_reset)
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   books          Book[]
-  tradesProposed Trade[] @relation("TradesProposed")
-  tradesReceived Trade[] @relation("TradesReceived")
+  tradesProposed Trade[]   @relation("TradesProposed")
+  tradesReceived Trade[]   @relation("TradesReceived")
+  messages       Message[]
 
   @@map("users")
 }
@@ -101,7 +106,25 @@ model Trade {
   offeredBook   Book @relation("OfferedBook", fields: [offeredBookId], references: [id])
   requestedBook Book @relation("RequestedBook", fields: [requestedBookId], references: [id])
 
+  messages Message[]
+
   @@index([receiverId, status])
   @@index([proposerId, status])
   @@map("trades")
+}
+
+model Message {
+  id        String    @id @default(uuid())
+  tradeId   String
+  senderId  String
+  content   String    @db.Text
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  trade  Trade @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+  sender User  @relation(fields: [senderId], references: [id])
+
+  @@index([tradeId, createdAt])
+  @@index([tradeId, readAt])
+  @@map("messages")
 }

@@ -1,28 +1,36 @@
-import React from 'react';
+import { Link } from 'react-router-dom';
 
-const CTABanner: React.FC = () => {
+export default function CTABanner() {
   return (
-    <section className="cta-banner-section fix section-padding pt-0">
-      <div className="container-fluid">
-        <div className="cta-banner-wrapper section-padding bg-cover" style={{ backgroundImage: "url('/assets/img/cta-banner.jpg')" }}>
-          <div className="book-shape">
-            <img src="/assets/img/book-shape.png" alt="book" />
-          </div>
-          <div className="girl-shape float-bob-x">
-            <img src="/assets/img/girl-shape-2.png" alt="girl" />
-          </div>
-          <div className="cta-content text-center">
-            <h2 className="mb-40 wow fadeInUp" data-wow-delay=".3s">
-              Ganhe 25% de desconto em todos <br /> os super best-sellers
+    <section className="section">
+      <div className="container">
+        <div className="cta-banner">
+          <div className="cta-banner__content">
+            <span className="cta-banner__eyebrow">Comece hoje</span>
+            <h2>
+              Pronto para dar <em>nova vida</em> aos seus livros?
             </h2>
-            <a href="/books" className="theme-btn wow fadeInUp" data-wow-delay=".5s">
-              Comprar agora <i className="fa-solid fa-arrow-right-long"></i>
-            </a>
+            <p>
+              Cadastre-se gratuitamente e comece a trocar com leitores da sua
+              região em poucos minutos.
+            </p>
+            <div className="cta-banner__actions">
+              <Link to="/register" className="btn btn-accent btn-lg">
+                Criar minha conta
+              </Link>
+              <Link to="/livros" className="btn btn-secondary btn-lg">
+                Explorar catálogo
+              </Link>
+            </div>
+          </div>
+
+          <div className="cta-banner__visual" aria-hidden>
+            <div className="cta-banner__mini-book" />
+            <div className="cta-banner__mini-book" />
+            <div className="cta-banner__mini-book" />
           </div>
         </div>
       </div>
     </section>
   );
-};
-
-export default CTABanner;
+}

@@ -11,6 +11,7 @@ import {
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+import { CreateMessageDto } from './dto/create-message.dto';
 import { CreateTradeDto } from './dto/create-trade.dto';
 import { TradesService } from './trades.service';
 
@@ -19,43 +20,59 @@ import { TradesService } from './trades.service';
 export class TradesController {
   constructor(private readonly tradesService: TradesService) {}
 
-  /** POST /trades -> cria uma proposta de troca */
   @Post()
   propose(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateTradeDto) {
     return this.tradesService.propose(user.id, dto);
   }
 
-  /** GET /trades/received -> propostas que me fizeram */
+  /** GET /trades/summary -> notificações + conversas ativas */
+  @Get('summary')
+  summary(@CurrentUser() user: AuthenticatedUser) {
+    return this.tradesService.getSummary(user.id);
+  }
+
   @Get('received')
   received(@CurrentUser() user: AuthenticatedUser) {
     return this.tradesService.findReceived(user.id);
   }
 
-  /** GET /trades/sent -> propostas que eu fiz */
   @Get('sent')
   sent(@CurrentUser() user: AuthenticatedUser) {
     return this.tradesService.findSent(user.id);
   }
 
-  /** PATCH /trades/:id/accept -> so o dono do livro pedido */
+  @Get(':id/messages')
+  listMessages(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
+    return this.tradesService.listMessages(user.id, id);
+  }
+
+  @Post(':id/messages')
+  sendMessage(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: CreateMessageDto,
+  ) {
+    return this.tradesService.sendMessage(user.id, id, dto);
+  }
+
   @Patch(':id/accept')
   accept(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.tradesService.accept(user.id, id);
   }
 
-  /** PATCH /trades/:id/reject -> so o dono do livro pedido */
   @Patch(':id/reject')
   reject(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.tradesService.reject(user.id, id);
   }
 
-  /** PATCH /trades/:id/cancel -> so o proponente */
   @Patch(':id/cancel')
   cancel(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.tradesService.cancel(user.id, id);
   }
 
-  /** PATCH /trades/:id/confirm -> cada parte confirma que a troca ocorreu */
   @Patch(':id/confirm')
   confirm(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.tradesService.confirm(user.id, id);

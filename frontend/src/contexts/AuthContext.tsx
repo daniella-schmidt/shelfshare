@@ -1,66 +1,68 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../api/axios';
+// src/contexts/AuthContext.tsx
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  login as apiLogin,
+  register as apiRegister,
+  getMe,
+  type AuthUser,
+  type RegisterInput,
+} from '../api/auth';
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface AuthContextType {
-  user: User | null;
+interface AuthCtx {
+  user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (p: RegisterInput) => Promise<void>;
+  signOut: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+const Ctx = createContext<AuthCtx>({} as AuthCtx);
+const TOKEN_KEY = 'shelfshare.token';
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      api.defaults.headers.Authorization = `Bearer ${token}`;
-      api.get('/users/me')
-        .then(res => setUser(res.data))
-        .catch(() => localStorage.removeItem('token'))
-        .finally(() => setLoading(false));
-    } else {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
       setLoading(false);
+      return;
     }
+    getMe()
+      .then(setUser)
+      .catch(() => localStorage.removeItem(TOKEN_KEY))
+      .finally(() => setLoading(false));
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const res = await api.post('/auth/login', { email, password });
-    const { access_token, user } = res.data;
-    localStorage.setItem('token', access_token);
-    api.defaults.headers.Authorization = `Bearer ${access_token}`;
+  const signIn = async (email: string, password: string) => {
+    const { access_token, user } = await apiLogin(email, password);
+    localStorage.setItem(TOKEN_KEY, access_token);
     setUser(user);
   };
 
-  const register = async (name: string, email: string, password: string) => {
-    const res = await api.post('/auth/register', { name, email, password });
-    const { access_token, user } = res.data;
-    localStorage.setItem('token', access_token);
-    api.defaults.headers.Authorization = `Bearer ${access_token}`;
+  const signUp = async (p: RegisterInput) => {
+    const { access_token, user } = await apiRegister(p);
+    localStorage.setItem(TOKEN_KEY, access_token);
     setUser(user);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    delete api.defaults.headers.Authorization;
+  const signOut = () => {
+    localStorage.removeItem(TOKEN_KEY);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <Ctx.Provider value={{ user, loading, signIn, signUp, signOut }}>
       {children}
-    </AuthContext.Provider>
+    </Ctx.Provider>
   );
-};
+}
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => useContext(Ctx);

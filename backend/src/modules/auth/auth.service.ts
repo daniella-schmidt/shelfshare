@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -76,5 +77,14 @@ export class AuthService {
 
   private signToken(sub: string, email: string): string {
     return this.jwt.sign({ sub, email });
+  }
+
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: PUBLIC_FIELDS,
+    });
+    if (!user) throw new NotFoundException('Usuário não encontrado.');
+    return user;
   }
 }

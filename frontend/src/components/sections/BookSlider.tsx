@@ -1,101 +1,95 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { catalogApi, type CatalogBook } from '../../api/books';
+import BookCard from '../books/BookCard';
 
-const books = [
-  { id: 1, title: 'Simple Things You To Save BOOK', author: 'Wilson', price: 30.00, oldPrice: 39.99, image: '/assets/img/book/01.png' },
-  { id: 2, title: 'How Deal With Very Bad BOOK', author: 'Esther', price: 39.00, image: '/assets/img/book/02.png' },
-  { id: 3, title: 'The Hidden Mystery Behind', author: 'Hawkins', price: 29.00, image: '/assets/img/book/03.png' },
-  { id: 4, title: 'Qple GPad With Retina Sisplay', author: 'Albert', price: 19.00, image: '/assets/img/book/04.png' },
-  { id: 5, title: 'Flovely and Unicom Erna', author: 'Alexander', price: 30.00, image: '/assets/img/book/05.png' },
-];
+const MAX_BOOKS = 10;
 
-const BookSlider: React.FC = () => {
-  const swiperRef = useRef<HTMLDivElement>(null);
+export default function BookSlider() {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [books, setBooks] = useState<CatalogBook[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (swiperRef.current && (window as any).Swiper) {
-      new (window as any).Swiper(swiperRef.current, {
-        spaceBetween: 30,
-        speed: 2000,
-        loop: true,
-        autoplay: { delay: 2000, disableOnInteraction: false },
-        breakpoints: {
-          1499: { slidesPerView: 5 },
-          1199: { slidesPerView: 3 },
-          767: { slidesPerView: 2 },
-          575: { slidesPerView: 1 },
-        },
-      });
-    }
+    let active = true;
+    setLoading(true);
+    setError(null);
+
+    catalogApi
+      .list()
+      .then((list) => { if (active) setBooks(list.slice(0, MAX_BOOKS)); })
+      .catch(() => { if (active) setError('Não foi possível carregar os livros agora.'); })
+      .finally(() => { if (active) setLoading(false); });
+
+    return () => { active = false; };
   }, []);
 
+  function scrollBy(dir: 1 | -1) {
+    scrollerRef.current?.scrollBy({ left: dir * 280, behavior: 'smooth' });
+  }
+
   return (
-    <section className="shop-section section-padding fix pt-0">
-      <div className="container-fluid">
-        <div className="section-title-area">
-          <div className="section-title">
-            <h2 className="wow fadeInUp" data-wow-delay=".3s">Livros em Destaque</h2>
+    <section className="section">
+      <div className="container">
+        <div className="section-head">
+          <div className="section-head__left">
+            <span className="section-eyebrow">Em destaque</span>
+            <h2>Livros circulando agora</h2>
+            <p className="section-head__lead">
+              Descubra o que outros leitores estão trocando nesta semana.
+            </p>
           </div>
-          <a href="/books" className="theme-btn transparent-btn wow fadeInUp" data-wow-delay=".5s">
-            Ver todos <i className="fa-solid fa-arrow-right-long"></i>
-          </a>
+          <div className="section-head__actions">
+            <button className="arrow-btn" onClick={() => scrollBy(-1)} aria-label="Anterior">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2.5"
+                strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <button className="arrow-btn" onClick={() => scrollBy(1)} aria-label="Próximo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2.5"
+                strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
         </div>
-        <div className="swiper book-slider" ref={swiperRef}>
-          <div className="swiper-wrapper">
-            {books.map((book) => (
-              <div className="swiper-slide" key={book.id}>
-                <div className="shop-box-items style-2">
-                  <div className="book-thumb center">
-                    <a href={`/books/${book.id}`}>
-                      <img src={book.image} alt={book.title} />
-                    </a>
-                    {book.oldPrice && (
-                      <ul className="post-box">
-                        <li>Hot</li>
-                        <li>-30%</li>
-                      </ul>
-                    )}
-                    <ul className="shop-icon d-grid">
-                      <li><a href="#"><i className="far fa-heart"></i></a></li>
-                      <li><a href="#"><img className="icon" src="/assets/img/icon/shuffle.svg" alt="compare" /></a></li>
-                      <li><a href={`/books/${book.id}`}><i className="far fa-eye"></i></a></li>
-                    </ul>
-                  </div>
-                  <div className="shop-content">
-                    <h5>Design Low Book</h5>
-                    <h3><a href={`/books/${book.id}`}>{book.title}</a></h3>
-                    <ul className="price-list">
-                      <li>${book.price.toFixed(2)}</li>
-                      {book.oldPrice && <li><del>${book.oldPrice.toFixed(2)}</del></li>}
-                    </ul>
-                    <ul className="author-post">
-                      <li className="authot-list">
-                        <span className="thumb">
-                          <img src="/assets/img/testimonial/client-1.png" alt="author" />
-                        </span>
-                        <span className="content">{book.author}</span>
-                      </li>
-                      <li className="star">
-                        <i className="fa-solid fa-star"></i>
-                        <i className="fa-solid fa-star"></i>
-                        <i className="fa-solid fa-star"></i>
-                        <i className="fa-solid fa-star"></i>
-                        <i className="fa-regular fa-star"></i>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="shop-button">
-                    <a href={`/books/${book.id}`} className="theme-btn">
-                      <i className="fa-solid fa-basket-shopping"></i> Trocar
-                    </a>
-                  </div>
+
+        {loading && (
+          <div className="h-scroll" aria-busy="true">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="book-card book-card--skeleton">
+                <div className="book-card__cover skeleton" />
+                <div className="book-card__body">
+                  <div className="skeleton" style={{ height: 16, width: '80%' }} />
+                  <div className="skeleton" style={{ height: 12, width: '60%' }} />
+                  <div className="skeleton" style={{ height: 12, width: '40%' }} />
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        )}
+
+        {!loading && error && <div className="empty-inline">{error}</div>}
+
+        {!loading && !error && books.length === 0 && (
+          <div className="empty-inline">
+            Ainda não há livros disponíveis. Seja o primeiro a compartilhar um!{' '}
+            <Link to="/minha-estante">Cadastrar um livro</Link>
+          </div>
+        )}
+
+        {!loading && !error && books.length > 0 && (
+          <div className="h-scroll" ref={scrollerRef}>
+            {books.map((book) => (
+              <BookCard key={book.id} book={book} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
-};
-
-export default BookSlider;
+}
