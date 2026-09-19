@@ -6,25 +6,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* ---- Paleta base (fornecida) ---- */
+  /* ---- Paleta base ---- */
   --royal-gold: #f0cd59;
-  --royal-gold-deep: #cfa72f;
+  --royal-gold-deep: #a8830f;          /* mais escuro p/ texto sobre fundo claro */
   --bright-fern: #5fad41;
   --sea-green: #2d936c;
+  --sea-green-deep: #1c5e46;
   --indigo-ink: #391463;
   --dark-amethyst: #3a0842;
 
   /* ---- Tokens semânticos ---- */
-  --color-primary: #3a0842;         /* ametista escuro */
+  --color-primary: #3a0842;
   --color-primary-hover: #2a0530;
   --color-primary-light: #f5ebf7;
-  --color-primary-ring: rgba(58, 8, 66, 0.18);
+  --color-primary-ring: rgba(58, 8, 66, 0.22);
 
-  --color-accent: #f0cd59;          /* ouro real */
+  --color-accent: #f0cd59;
   --color-accent-hover: #d9b13c;
   --color-accent-light: #fdf3d3;
+  --color-accent-ink: #6b4d00;         /* texto acessível sobre accent-light */
 
-  --color-fresh: #2d936c;           /* verde-mar */
+  --color-fresh: #2d936c;
   --color-fresh-light: #d9efe6;
   --color-fern: #5fad41;
   --color-fern-light: #dcefd2;
@@ -34,16 +36,22 @@
   --color-muted: #6f5577;
 
   --color-surface: #fffdf8;
-  --color-surface-2: #fbf8f1;       /* papel */
+  --color-surface-2: #fbf8f1;
   --color-surface-3: #f2ecdf;
 
-  --color-border: rgba(58, 8, 66, 0.10);
-  --color-border-strong: rgba(58, 8, 66, 0.22);
+  --color-border: rgba(58, 8, 66, 0.12);
+  --color-border-strong: rgba(58, 8, 66, 0.28);
 
-  --color-success: #2d936c;
+  --color-success: #1c5e46;
   --color-success-light: #d9efe6;
-  --color-error: #b3261e;
+  --color-error: #a2160f;
   --color-error-light: #f7ddd9;
+
+  /* texto consistente sobre fundos escuros (hero, footer, drawer) */
+  --color-on-dark: #fdf7e6;
+  --color-on-dark-soft: rgba(253, 247, 230, 0.72);
+  --color-on-dark-dim: rgba(253, 247, 230, 0.58);
+  --color-on-dark-border: rgba(240, 205, 89, 0.22);
 
   /* ---- Tipografia ---- */
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -81,7 +89,7 @@
   --radius-xl: 28px;
   --radius-full: 9999px;
 
-  /* ---- Sombras (sutis, quentes) ---- */
+  /* ---- Sombras ---- */
   --shadow-sm: 0 1px 2px rgba(42, 11, 49, 0.06);
   --shadow-md: 0 6px 20px -8px rgba(42, 11, 49, 0.18);
   --shadow-lg: 0 18px 40px -16px rgba(42, 11, 49, 0.24);
@@ -97,6 +105,7 @@
   /* ---- Layout ---- */
   --container-max: 1200px;
   --header-height: 76px;
+  --focus-ring-width: 3px;
 }
 
 /* ---------- Tema escuro ---------- */
@@ -105,17 +114,27 @@
   --color-surface-2: #1a0a21;
   --color-surface-3: #2e1638;
 
-  --color-ink: #f6efdd;
-  --color-body: #dccfe2;
-  --color-muted: #a48fae;
+  --color-ink: #f8f3e7;
+  --color-body: #e2d8e8;
+  --color-muted: #b6a4c0;
 
-  --color-border: rgba(246, 239, 221, 0.12);
-  --color-border-strong: rgba(246, 239, 221, 0.24);
+  --color-border: rgba(248, 243, 231, 0.14);
+  --color-border-strong: rgba(248, 243, 231, 0.28);
 
-  --color-primary-light: rgba(240, 205, 89, 0.14);
-  --color-accent-light: rgba(240, 205, 89, 0.18);
-  --color-success-light: rgba(45, 147, 108, 0.20);
-  --color-error-light: rgba(179, 38, 30, 0.22);
+  --color-primary-light: rgba(240, 205, 89, 0.16);
+  --color-accent-light: rgba(240, 205, 89, 0.20);
+  --color-accent-ink: #f0cd59;         /* ouro sobre fundo escuro */
+  --color-success-light: rgba(45, 147, 108, 0.24);
+  --color-success: #8ad4b4;
+  --color-error-light: rgba(179, 38, 30, 0.26);
+  --color-error: #ff9d95;
+
+  --color-primary-ring: rgba(240, 205, 89, 0.35);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 20px -8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 18px 40px -16px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 32px 64px -24px rgba(0, 0, 0, 0.7);
 }
 
 /* ---------- Tamanho de fonte (acessibilidade) ---------- */
@@ -128,7 +147,11 @@ html[data-font-size='xl'] { font-size: 20px; }
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-height) + var(--space-4));
+}
 
 body {
   font-family: var(--font-sans);
@@ -153,22 +176,45 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-ink);
   font-family: var(--font-display);
   font-weight: 600;
-  line-height: 1.08;
+  line-height: 1.12;
   letter-spacing: -0.02em;
+  text-wrap: balance;
   font-variation-settings: 'SOFT' 0, 'WONK' 0, 'opsz' 48;
 }
 
-h1 { font-size: clamp(2.5rem, 6vw, var(--text-6xl)); font-weight: 500; letter-spacing: -0.03em; }
-h2 { font-size: clamp(1.875rem, 4vw, var(--text-4xl)); font-weight: 500; letter-spacing: -0.025em; }
-h3 { font-size: var(--text-2xl); }
+h1 { font-size: clamp(2.25rem, 5.5vw, var(--text-6xl)); font-weight: 500; letter-spacing: -0.03em; }
+h2 { font-size: clamp(1.75rem, 3.8vw, var(--text-4xl)); font-weight: 500; letter-spacing: -0.025em; }
+h3 { font-size: clamp(1.25rem, 2vw, var(--text-2xl)); }
 h4 { font-size: var(--text-xl); }
 
-/* ---------- Foco visível ---------- */
+p { text-wrap: pretty; }
+
+/* ---------- Foco visível (garantido em claro e escuro) ---------- */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: var(--focus-ring-width) solid var(--color-accent);
   outline-offset: 3px;
   border-radius: 4px;
 }
+/* Fallback para navegadores antigos que ignoram :focus-visible */
+@supports not selector(:focus-visible) {
+  :focus { outline: var(--focus-ring-width) solid var(--color-accent); outline-offset: 3px; }
+}
+
+/* ---------- Skip link ---------- */
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -100px;
+  z-index: 9999;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-accent);
+  color: var(--dark-amethyst);
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  transition: top var(--transition-fast);
+}
+.skip-link:focus { top: var(--space-4); outline-offset: 2px; }
 
 ::selection { background: var(--color-accent); color: var(--dark-amethyst); }
 
@@ -181,6 +227,15 @@ h4 { font-size: var(--text-xl); }
   border: 2px solid var(--color-surface-2);
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
+
+/* ---------- Utilitário visualmente oculto (mas acessível a leitores de tela) ---------- */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0;
+}
 
 /* ---------- Animações ---------- */
 @keyframes fadeInUp {

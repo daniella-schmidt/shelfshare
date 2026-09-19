@@ -1,62 +1,42 @@
-const FEATURES = [
+const STEPS = [
   {
-    icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      </svg>
-    ),
-    title: 'Cadastre seus livros',
-    text: 'Adicione títulos em segundos — busca automática por ISBN preenche capa, autor e editora.',
+    number: '01',
+    title: 'Monte sua estante',
+    text: 'Cadastre os livros que você já leu. A busca automática por ISBN preenche capa, autor e editora em um clique.',
   },
   {
-    icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8" />
-        <path d="m21 21-4.3-4.3" />
-      </svg>
-    ),
-    title: 'Encontre leitores próximos',
-    text: 'Filtre por cidade, gênero ou condição. Descubra quem tem o livro que você procura.',
+    number: '02',
+    title: 'Encontre a próxima leitura',
+    text: 'Explore o catálogo por título, autor, cidade ou condição. Salve os que te interessam.',
   },
   {
-    icon: (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 7h16M4 12h16M4 17h10" />
-        <circle cx="19" cy="17" r="2.5" />
-      </svg>
-    ),
-    title: 'Proponha e conclua a troca',
-    text: 'Combine pelo próprio ShelfShare. Ambos confirmam — o contato é liberado com segurança.',
+    number: '03',
+    title: 'Proponha a troca',
+    text: 'Ofereça um dos seus livros. Quando ambos aceitarem, o contato é liberado e vocês combinam a entrega.',
   },
 ];
 
 export default function Features() {
   return (
-    <section className="section section--paper">
+    <section className="section">
       <div className="container">
-        <div className="section-head">
-          <div className="section-head__left">
-            <span className="section-eyebrow">Como funciona</span>
-            <h2>Simples como folhear um livro</h2>
-            <p className="section-head__lead">
-              Em três passos você transforma livros parados em novas leituras.
-            </p>
-          </div>
-        </div>
+        <header className="section-head section-head--center">
+          <span className="section-eyebrow">Como funciona</span>
+          <h2>Simples como folhear um livro</h2>
+          <p className="section-head__lead">
+            Três passos entre o livro parado na estante e a próxima leitura.
+          </p>
+        </header>
 
-        <div className="features-grid">
-          {FEATURES.map((f) => (
-            <article key={f.title} className="feature-card">
-              <span className="feature-card__icon" aria-hidden>{f.icon}</span>
-              <h3>{f.title}</h3>
-              <p>{f.text}</p>
-            </article>
+        <ol className="steps">
+          {STEPS.map((s) => (
+            <li key={s.number} className="step">
+              <span className="step__number" aria-hidden="true">{s.number}</span>
+              <h3 className="step__title">{s.title}</h3>
+              <p className="step__text">{s.text}</p>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   );

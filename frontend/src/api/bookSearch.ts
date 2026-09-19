@@ -1,6 +1,3 @@
-// src/api/bookSearch.ts
-// Busca de livros com prioridade pt-BR + cooldown do Google após 429
-
 export interface ExternalBook {
   externalId: string;
   title: string;
@@ -17,56 +14,120 @@ export interface ExternalBook {
 }
 
 const MIN_QUERY_LENGTH = 3;
+const TIMEOUT_MS = 4000;          // timeout por requisição
+const SOFT_DEADLINE_MS = 3500;    // retorna com resultados parciais após isso
+const CACHE_TTL = 10 * 60 * 1000; // 10 min
 
 /* ============================================================
-   Estado global: cooldown do Google após receber 429
+   Cooldown do Google (persistido em localStorage)
    ============================================================ */
-let googleDisabledUntil = 0; // timestamp ms
+const GOOGLE_COOLDOWN_KEY = 'shelfshare:google-cooldown-until';
 const GOOGLE_COOLDOWN_MS = 30 * 60 * 1000; // 30 min
 
-function isGoogleAvailable() {
+function readGoogleCooldown(): number {
+  try {
+    const v = localStorage.getItem(GOOGLE_COOLDOWN_KEY);
+    if (!v) return 0;
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+let googleDisabledUntil = readGoogleCooldown();
+
+function isGoogleAvailable(): boolean {
   return Date.now() >= googleDisabledUntil;
 }
 
-function disableGoogle() {
+function disableGoogle(): void {
   googleDisabledUntil = Date.now() + GOOGLE_COOLDOWN_MS;
+  try {
+    localStorage.setItem(GOOGLE_COOLDOWN_KEY, String(googleDisabledUntil));
+  } catch {
+    /* ignore */
+  }
 }
 
 /* ============================================================
-   Cache em memória
+   Cache em memória (TTL 10 min)
    ============================================================ */
-const cache = new Map<string, ExternalBook[]>();
-const CACHE_TTL = 5 * 60 * 1000;
-const cacheTimestamps = new Map<string, number>();
+const cache = new Map<string, { data: ExternalBook[]; timestamp: number }>();
 
 function getCached(q: string): ExternalBook[] | null {
   const key = q.toLowerCase().trim();
-  const ts = cacheTimestamps.get(key);
-  if (!ts) return null;
-  if (Date.now() - ts > CACHE_TTL) {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL) {
     cache.delete(key);
-    cacheTimestamps.delete(key);
     return null;
   }
-  return cache.get(key) ?? null;
+  return entry.data;
 }
 
-function setCached(q: string, data: ExternalBook[]) {
+function setCached(q: string, data: ExternalBook[]): void {
   const key = q.toLowerCase().trim();
-  cache.set(key, data);
-  cacheTimestamps.set(key, Date.now());
+  cache.set(key, { data, timestamp: Date.now() });
 }
 
 /* ============================================================
-   BrasilAPI — metadados por ISBN (agrega CBL + Open Library + Google Books)
+   Validação de ISBN (10 e 13 dígitos — dígito verificador)
+   ============================================================ */
+function isValidIsbn(raw: string): boolean {
+  const clean = raw.replace(/[^0-9X]/gi, '');
+
+  if (clean.length === 10) {
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      sum += (10 - i) * parseInt(clean[i], 10);
+    }
+    const check = clean[9].toUpperCase() === 'X' ? 10 : parseInt(clean[9], 10);
+    return (sum + check) % 11 === 0;
+  }
+
+  if (clean.length === 13) {
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      sum += parseInt(clean[i], 10) * (i % 2 === 0 ? 1 : 3);
+    }
+    const check = parseInt(clean[12], 10);
+    return (10 - (sum % 10)) % 10 === check;
+  }
+
+  return false;
+}
+
+/* ============================================================
+   Fetch com timeout (AbortController)
+   ============================================================ */
+async function fetchWithTimeout(
+  url: string,
+  timeoutMs = TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* ============================================================
+   BrasilAPI — metadados por ISBN (só com ISBN válido)
+   Retorna null em qualquer resposta não-ok (inclui 400/404).
    ============================================================ */
 export async function fetchByIsbn(isbn: string): Promise<ExternalBook | null> {
   const clean = isbn.replace(/[^0-9X]/gi, '');
-  if (clean.length < 10) return null;
+  if (!isValidIsbn(clean)) return null;
 
   try {
-    const res = await fetch(`https://brasilapi.com.br/api/isbn/v1/${clean}`);
-    if (!res.ok) return null;
+    const res = await fetchWithTimeout(
+      `https://brasilapi.com.br/api/isbn/v1/${clean}`,
+    );
+    if (!res.ok) return null; // 400, 404, 500 → tratado como "não encontrado"
 
     const data = await res.json();
 
@@ -90,34 +151,6 @@ export async function fetchByIsbn(isbn: string): Promise<ExternalBook | null> {
 }
 
 /* ============================================================
-   Gutendex — livros em pt-BR (domínio público)
-   ============================================================ */
-async function searchGutendex(query: string): Promise<ExternalBook[]> {
-  const url = new URL('https://gutendex.com/books');
-  url.searchParams.set('search', query);
-  url.searchParams.set('languages', 'pt');
-
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error('Gutendex indisponível');
-
-  const data = await res.json();
-
-  return (data.results ?? []).slice(0, 10).map((book: any): ExternalBook => {
-    const formats = book.formats ?? {};
-    const cover = formats['image/jpeg'];
-
-    return {
-      externalId: `gutendex-${book.id}`,
-      title: book.title ?? '',
-      authors: book.authors?.map((a: any) => a.name) ?? [],
-      coverUrl: cover,
-      language: 'pt',
-      source: 'gutendex',
-    };
-  });
-}
-
-/* ============================================================
    Open Library (foco pt)
    ============================================================ */
 async function searchOpenLibrary(query: string): Promise<ExternalBook[]> {
@@ -130,7 +163,7 @@ async function searchOpenLibrary(query: string): Promise<ExternalBook[]> {
     'key,title,author_name,first_publish_year,isbn,cover_i',
   );
 
-  const res = await fetch(url.toString());
+  const res = await fetchWithTimeout(url.toString());
   if (res.status === 422) throw new Error('INVALID_QUERY');
   if (!res.ok) throw new Error('Open Library indisponível');
 
@@ -174,7 +207,7 @@ async function searchGoogleBooks(query: string): Promise<ExternalBook[]> {
   const apiKey = import.meta.env.VITE_GOOGLE_BOOKS_KEY;
   if (apiKey) url.searchParams.set('key', apiKey);
 
-  const res = await fetch(url.toString());
+  const res = await fetchWithTimeout(url.toString());
 
   if (res.status === 429) {
     disableGoogle();
@@ -206,7 +239,12 @@ async function searchGoogleBooks(query: string): Promise<ExternalBook[]> {
 }
 
 /* ============================================================
-   Busca unificada — pt-BR primeiro, Google só se disponível
+   Busca unificada — com soft deadline (resultados parciais)
+
+   Como funciona:
+   - Cada fonte empurra resultados para `collected` assim que responde.
+   - `Promise.race` entre "todas as fontes" e "3.5s de relógio".
+   - O que tiver sido coletado é devolvido, sem esperar a fonte lenta.
    ============================================================ */
 export async function searchBooks(query: string): Promise<ExternalBook[]> {
   const q = query.trim();
@@ -228,23 +266,27 @@ export async function searchBooks(query: string): Promise<ExternalBook[]> {
     }
   };
 
-  // As três buscas disparam em paralelo; a primeira que responder já pode popular a lista.
-  const tasks: Promise<ExternalBook[]>[] = [
-    searchGutendex(q).catch(() => [] as ExternalBook[]),
-    searchOpenLibrary(q).catch(() => [] as ExternalBook[]),
+  // Dispara as fontes em paralelo. Cada uma popula `collected` ao resolver.
+  const tasks: Promise<void>[] = [
+    searchOpenLibrary(q).then(addUnique).catch(() => { /* silencioso */ }),
   ];
 
-  // Google só entra se não estiver em cooldown
   if (isGoogleAvailable()) {
-    tasks.push(searchGoogleBooks(q).catch(() => [] as ExternalBook[]));
+    tasks.push(
+      searchGoogleBooks(q).then(addUnique).catch(() => { /* silencioso */ }),
+    );
   }
 
-  const results = await Promise.all(tasks);
-  for (const list of results) addUnique(list);
+  // Aguarda: (a) todas as fontes terminarem OU (b) o soft deadline expirar.
+  await Promise.race([
+    Promise.allSettled(tasks),
+    new Promise<void>((resolve) => setTimeout(resolve, SOFT_DEADLINE_MS)),
+  ]);
 
   if (collected.length > 0) setCached(q, collected);
   return collected;
 }
+
 /* ============================================================
    Enriquecimento via BrasilAPI (metadados pt-BR)
    ============================================================ */
@@ -252,7 +294,7 @@ export async function enrichWithBrasilApi(
   book: ExternalBook,
 ): Promise<ExternalBook> {
   const isbn = book.isbn13 ?? book.isbn10;
-  if (!isbn) return book;
+  if (!isbn || !isValidIsbn(isbn)) return book;
 
   const detailed = await fetchByIsbn(isbn);
   if (!detailed) return book;
@@ -274,7 +316,7 @@ export async function enrichWithBrasilApi(
 /** Busca direta por ISBN (BrasilAPI primeiro). */
 export async function searchByIsbn(isbn: string): Promise<ExternalBook | null> {
   const clean = isbn.replace(/[^0-9X]/gi, '');
-  if (clean.length < 10) return null;
+  if (!isValidIsbn(clean)) return null;
 
   const direct = await fetchByIsbn(clean);
   if (direct) return direct;

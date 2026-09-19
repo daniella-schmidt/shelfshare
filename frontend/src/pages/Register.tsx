@@ -104,30 +104,20 @@ export default function Register() {
                 gap: 'var(--space-4)',
               }}
             >
-              <div className="field">
-                <label htmlFor="city">Cidade</label>
-                <input
-                  id="city"
-                  type="text"
-                  className="input"
-                  placeholder="São Paulo"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="state">UF</label>
-                <input
-                  id="state"
-                  type="text"
-                  className="input"
-                  placeholder="SP"
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  maxLength={2}
-                  required
-                />
+              <div className="auth-grid-2">
+                <div className="field">
+                  <label htmlFor="city">Cidade</label>
+                  <input id="city" type="text" className="input" placeholder="São Paulo"
+                    value={city} onChange={(e) => setCity(e.target.value)}
+                    autoComplete="address-level2" required />
+                </div>
+                <div className="field">
+                  <label htmlFor="state">UF</label>
+                  <input id="state" type="text" className="input" placeholder="SP"
+                    value={state} onChange={(e) => setState(e.target.value.toUpperCase())}
+                    maxLength={2} autoComplete="address-level1"
+                    pattern="[A-Za-z]{2}" required />
+                </div>
               </div>
             </div>
 

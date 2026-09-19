@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Book } from '../../api/books';
 
-const CONDITIONS: Record<string, string> = {
+const CONDITION_LABELS: Record<string, string> = {
   NOVO: 'Novo',
   OTIMO: 'Ótimo',
   BOM: 'Bom',
@@ -9,63 +9,60 @@ const CONDITIONS: Record<string, string> = {
   RUIM: 'Ruim',
 };
 
-/* Cores sólidas derivadas da paleta da marca para fallback de capa */
-const COVER_COLORS = ['#3a0842', '#391463', '#2d936c', '#5fad41', '#cfa72f'];
+const COVER_VARIANTS = ['', 'accent', 'spruce', 'rose', 'peony', 'success'] as const;
 
-function pickColor(seed: string) {
+function pickVariant(seed: string) {
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return COVER_COLORS[h % COVER_COLORS.length];
+  return COVER_VARIANTS[h % COVER_VARIANTS.length];
 }
 
 export default function BookCard({ book }: { book: Book }) {
-  const bg = pickColor(book.id);
-  const cond = CONDITIONS[book.condition] ?? book.condition;
+  const variant = pickVariant(book.id);
+  const variantClass = variant ? ` book-cover-fallback--${variant}` : '';
+  const condition = CONDITION_LABELS[book.condition] ?? book.condition;
 
   return (
-    <Link to={`/livros/${book.id}`} className="book-card">
-      <div className="book-card__cover" style={{ background: book.coverUrl ? undefined : bg }}>
+    <Link
+      to={`/livros/${book.id}`}
+      className="book-card"
+      aria-label={`${book.title}, de ${book.author}, condição ${condition}. Ver detalhes.`}
+    >
+      <div className="book-card__cover">
         {book.coverUrl ? (
-          <img src={book.coverUrl} alt={book.title} />
+          <img
+            src={book.coverUrl}
+            alt={`Capa de ${book.title}`}
+            loading="lazy"
+            decoding="async"
+          />
         ) : (
-          <div style={{ padding: '1.5rem', width: '100%' }}>
-            <div style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.4rem',
-              fontWeight: 600,
-              color: '#fdf7e6',
-              lineHeight: 1.15,
-              letterSpacing: '-0.02em',
-            }}>
-              {book.title}
+          <div className={`book-cover-fallback${variantClass}`} aria-hidden="true">
+            <div className="book-cover-fallback__top">
+              <span className="book-cover-fallback__label">ShelfShare</span>
+              <span className="book-cover-fallback__mark">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                  strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+              </span>
             </div>
-            <div style={{
-              marginTop: 'auto',
-              fontSize: '0.75rem',
-              color: 'rgba(253,247,230,0.7)',
-              fontWeight: 500,
-            }}>
-              {book.author}
-            </div>
+            <div className="book-cover-fallback__title">{book.title}</div>
+            <div className="book-cover-fallback__author">{book.author}</div>
           </div>
         )}
-        <span className="badge badge-accent book-card__badge">{cond}</span>
+        <span className="badge badge-accent book-card__badge" aria-hidden="true">
+          {condition}
+        </span>
       </div>
-
       <div className="book-card__body">
         <h3 className="book-card__title">{book.title}</h3>
         <p className="book-card__author">{book.author}</p>
         <div className="book-card__footer">
-          <span className="book-card__meta">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2"
-              strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            {book.owner?.city ?? '—'}
-          </span>
-          <span className="badge badge-success">Disponível</span>
+          <span className="book-card__meta">{book.owner?.city ?? '—'}</span>
+          <span className="badge badge-success" aria-hidden="true">Disponível</span>
         </div>
       </div>
     </Link>

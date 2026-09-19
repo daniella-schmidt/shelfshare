@@ -113,23 +113,16 @@ export default function BookDetail() {
           <div className="book-detail__cover">
             <div
               className="book-detail__cover-inner"
-              style={{
-                background: book.coverUrl
-                  ? `url(${book.coverUrl}) center/cover`
-                  : 'linear-gradient(135deg, #4338CA, #6366F1)',
-              }}
+              style={
+                book.coverUrl
+                  ? { backgroundImage: `url(${book.coverUrl})` }
+                  : undefined
+              }
             >
               {!book.coverUrl && (
-                <svg
-                  width="96"
-                  height="96"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.9)"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg width="96" height="96" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="1.4"
+                  strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                   <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                 </svg>

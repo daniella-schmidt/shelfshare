@@ -90,22 +90,32 @@ export default function Trades() {
           <p>Acompanhe as propostas que você enviou e recebeu.</p>
         </div>
 
-        <div className="tabs">
+        <div className="tabs" role="tablist" aria-label="Filtrar trocas">
           <button
             type="button"
+            role="tab"
+            id="tab-received"
+            aria-selected={tab === 'received'}
+            aria-controls="tabpanel-trades"
             className={`tab ${tab === 'received' ? 'is-active' : ''}`}
             onClick={() => { setTab('received'); setFeedback(null); }}
           >
             Recebidas
-            <span className="tab__count">{filteredReceived.length}</span>
+            <span className="tab__count" aria-hidden="true">{filteredReceived.length}</span>
+            <span className="sr-only">{filteredReceived.length} propostas recebidas</span>
           </button>
           <button
             type="button"
+            role="tab"
+            id="tab-sent"
+            aria-selected={tab === 'sent'}
+            aria-controls="tabpanel-trades"
             className={`tab ${tab === 'sent' ? 'is-active' : ''}`}
             onClick={() => { setTab('sent'); setFeedback(null); }}
           >
             Enviadas
-            <span className="tab__count">{filteredSent.length}</span>
+            <span className="tab__count" aria-hidden="true">{filteredSent.length}</span>
+            <span className="sr-only">{filteredSent.length} propostas enviadas</span>
           </button>
         </div>
 
