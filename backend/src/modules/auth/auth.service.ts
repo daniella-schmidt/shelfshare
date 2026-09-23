@@ -18,6 +18,7 @@ const PUBLIC_FIELDS = {
   id: true,
   name: true,
   email: true,
+  phone: true,
   city: true,
   state: true,
 } as const;

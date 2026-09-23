@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTradeDto } from './dto/create-trade.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
+import type { TradeStatus } from '@prisma/client';
 
 const USER_PUBLIC_SELECT = {
   id: true,
@@ -28,6 +29,44 @@ const MESSAGE_INCLUDE = {
   sender: { select: { id: true, name: true } },
 } as const;
 
+/* ---------------- politica de contato ----------------
+   E-mail e telefone das partes so podem aparecer depois que a troca e'
+   aceita — e' o aceite que libera o contato para combinarem a entrega.
+   As consultas continuam trazendo os campos; quem decide o que sai na
+   resposta e' o applyContactPolicy abaixo.                            */
+
+type PartyWithContact = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  city: string;
+  state: string;
+};
+
+type TradeWithParties = {
+  status: TradeStatus;
+  proposer: PartyWithContact;
+  receiver: PartyWithContact;
+};
+
+const CONTACT_RELEASED_IN: readonly TradeStatus[] = ['ACEITA', 'CONCLUIDA'];
+
+function stripContact(party: PartyWithContact) {
+  const { email, phone, ...visible } = party;
+  return visible;
+}
+
+function applyContactPolicy<T extends TradeWithParties>(trade: T) {
+  if (CONTACT_RELEASED_IN.includes(trade.status)) return trade;
+
+  return {
+    ...trade,
+    proposer: stripContact(trade.proposer),
+    receiver: stripContact(trade.receiver),
+  };
+}
+
 @Injectable()
 export class TradesService {
   constructor(private readonly prisma: PrismaService) {}
@@ -47,7 +86,7 @@ export class TradesService {
       throw new BadRequestException('Os dois livros precisam estar DISPONÍVEL.');
     }
 
-    return this.prisma.trade.create({
+    const created = await this.prisma.trade.create({
       data: {
         proposerId: userId,
         receiverId: requested.ownerId,
@@ -57,22 +96,28 @@ export class TradesService {
       },
       include: TRADE_INCLUDE,
     });
+
+    return applyContactPolicy(created);
   }
 
-  findReceived(userId: string) {
-    return this.prisma.trade.findMany({
+  async findReceived(userId: string) {
+    const trades = await this.prisma.trade.findMany({
       where: { receiverId: userId },
       include: TRADE_INCLUDE,
       orderBy: { createdAt: 'desc' },
     });
+
+    return trades.map(applyContactPolicy);
   }
 
-  findSent(userId: string) {
-    return this.prisma.trade.findMany({
+  async findSent(userId: string) {
+    const trades = await this.prisma.trade.findMany({
       where: { proposerId: userId },
       include: TRADE_INCLUDE,
       orderBy: { createdAt: 'desc' },
     });
+
+    return trades.map(applyContactPolicy);
   }
 
   async accept(userId: string, tradeId: string) {
@@ -105,7 +150,7 @@ export class TradesService {
         data: { status: 'RECUSADA', respondedAt: new Date() },
       });
 
-      return accepted;
+      return applyContactPolicy(accepted);
     });
   }
 
@@ -114,11 +159,13 @@ export class TradesService {
     if (trade.receiverId !== userId) throw new ForbiddenException();
     if (trade.status !== 'PENDENTE') throw new BadRequestException('Proposta já respondida.');
 
-    return this.prisma.trade.update({
+    const rejected = await this.prisma.trade.update({
       where: { id: tradeId },
       data: { status: 'RECUSADA', respondedAt: new Date() },
       include: TRADE_INCLUDE,
     });
+
+    return applyContactPolicy(rejected);
   }
 
   async cancel(userId: string, tradeId: string) {
@@ -126,11 +173,13 @@ export class TradesService {
     if (trade.proposerId !== userId) throw new ForbiddenException('Só quem propôs pode cancelar.');
     if (trade.status !== 'PENDENTE') throw new BadRequestException('Só propostas PENDENTES podem ser canceladas.');
 
-    return this.prisma.trade.update({
+    const cancelled = await this.prisma.trade.update({
       where: { id: tradeId },
       data: { status: 'CANCELADA', respondedAt: new Date() },
       include: TRADE_INCLUDE,
     });
+
+    return applyContactPolicy(cancelled);
   }
 
   async confirm(userId: string, tradeId: string) {
@@ -160,11 +209,13 @@ export class TradesService {
         });
       }
 
-      return tx.trade.update({
+      const updated = await tx.trade.update({
         where: { id: tradeId },
         data,
         include: TRADE_INCLUDE,
       });
+
+      return applyContactPolicy(updated);
     });
   }
 

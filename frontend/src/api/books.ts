@@ -25,8 +25,6 @@ export const booksApi = {
   update: (id: string, data: UpdateBookInput) =>
     api.patch<Book>(`/books/${id}`, data).then((r) => r.data),
   remove: (id: string) => api.delete(`/books/${id}`),
-  findOne: (id: string) =>
-    api.get<Book>(`/books/${id}`).then((r) => r.data),
 };
 
 export const listBooks = (params?: { q?: string; genre?: string; page?: number }) =>

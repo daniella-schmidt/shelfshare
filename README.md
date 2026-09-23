@@ -8,6 +8,12 @@ a entrega.
 Projeto final da disciplina de **Programação IV** — Ciência da Computação — UNOESC — 2026/02
 Professor: Roberson Junior Fernandes Alves
 
+## Entrega
+
+| | |
+| --- | --- |
+| Repositório | https://github.com/daniella-schmidt/shelfshare |
+
 ---
 
 ## Time
@@ -16,9 +22,9 @@ Professor: Roberson Junior Fernandes Alves
 
 | Integrante | GitHub | Responsabilidade |
 | --- | --- | --- |
-| Daniella Schmidt | [@daniella-schmidt] | Front-end - Next.js: telas de login/cadastro/estante, formulário, consumo da API |
-| Yuliangel Herrera | [@Yuliangel-Herrera] | models + auth + users no back-end: cadastro, login, hash de senha, JWT, guard |
-| Leandra | _a preencher_ | books no back-end: CRUD da estante, validação de dono, DTOs |
+| Daniella Schmidt | [@daniella-schmidt](https://github.com/daniella-schmidt) | Front-end: telas, componentes, chat e consumo da API |
+| Yuliangel Herrera | [@Yuliangel-Herrera](https://github.com/Yuliangel-Herrera) | Back-end: modelagem de dados, autenticação (JWT, bcrypt) e guards |
+| Leandra de Oliveira | [@Leandra-Oliveira]| Back-end: CRUD da estante, validação de dono e DTOs |
 
 ---
 
@@ -44,23 +50,26 @@ shelfshare/
 │  ├─ src/
 │  │  ├─ api/           chamadas HTTP ao backend
 │  │  ├─ controllers/   hooks com estado e regra de tela
-│  │  ├─ contexts/      estado global (autenticação)
+│  │  ├─ contexts/      estado global (autenticação, chat, acessibilidade)
 │  │  ├─ components/    componentes reutilizáveis
 │  │  ├─ pages/         uma tela por rota
-│  │  ├─ types/         interfaces compartilhadas
-│  │  └─ utils/         funções auxiliares
+│  │  └─ types/         interfaces compartilhadas
 │  ├─ .env.example
 │  └─ README.md         documentação detalhada do frontend
 ├─ backend/             API NestJS
 │  ├─ prisma/           schema e migrations
 │  ├─ src/
-│  │  ├─ common/        guards, decorators, filtros
+│  │  ├─ common/        guards, decorators, filtros de erro
 │  │  └─ modules/       auth, users, books, catalog, trades
 │  ├─ .env.example
 │  └─ README.md         documentação detalhada do backend
 ├─ .gitignore
 └─ README.md
 ```
+
+Documentação detalhada de cada parte: **[frontend](frontend/README.md)** e
+**[backend](backend/README.md)** — incluindo rotas, variáveis de ambiente e o registro
+da escolha de React + Vite.
 
 ---
 
@@ -127,6 +136,7 @@ A aplicação abre em **http://localhost:5173**.
 | `backend/.env` | `DATABASE_URL` | String de conexão do PostgreSQL |
 | `backend/.env` | `JWT_SECRET` | Segredo usado para assinar os tokens |
 | `backend/.env` | `PORT` | Porta da API (padrão `3001`) |
+| `backend/.env` | `FRONTEND_URL` | Origem liberada no CORS (padrão `http://localhost:5173`) |
 | `frontend/.env` | `VITE_API_URL` | URL base da API (padrão `http://localhost:3001`) |
 
 Os arquivos `.env` **não são versionados**. Cada `.env.example` serve de modelo e deve
@@ -143,23 +153,28 @@ ser mantido atualizado quando uma variável nova for adicionada.
 - Explorar e buscar livros disponíveis de outras pessoas
 - Propor troca oferecendo um livro próprio por um livro de outro usuário
 - Aceitar, recusar ou cancelar uma proposta
+- Conversar com a outra parte pelo chat da própria troca
 - Concluir a troca, liberando o contato entre as partes
+- Preencher os dados do livro buscando em catálogos externos pelo título ou ISBN
 
 ### Fora do MVP
 
-Chat em tempo real, avaliação e reputação de usuários, frete e pagamento, lista de
-desejos com match automático, notificações por e-mail, painel administrativo e
-integração com APIs externas de catálogo de livros.
+Avaliação e reputação de usuários, frete e pagamento, lista de desejos com match
+automático, notificações por e-mail, painel administrativo e redefinição de senha.
+
+O chat entrou no escopo durante o desenvolvimento. As mensagens ficam dentro da
+própria proposta e a tela se atualiza por polling a cada 15 segundos.
 
 ## Modelo de dados
 
-Três entidades. O `status` de cada uma controla todo o fluxo do sistema.
+Quatro entidades. O `status` de `Book` e `Trade` controla todo o fluxo do sistema.
 
 | Entidade | Papel |
 | --- | --- |
 | `User` | quem usa o sistema — dono de livros e participante de trocas |
 | `Book` | um exemplar pertencente a um usuário |
 | `Trade` | uma proposta de troca entre dois usuários e dois livros |
+| `Message` | uma mensagem do chat, sempre ligada a uma troca |
 
 ```
 Book   DISPONIVEL ──► RESERVADO ──► TROCADO
@@ -179,5 +194,5 @@ propostas pendentes que disputavam qualquer um deles — tudo dentro de uma tran
 3. Explora o acervo e encontra um livro de interesse.
 4. Propõe a troca, escolhendo qual dos seus livros vai oferecer.
 5. O dono do livro solicitado aceita ou recusa.
-6. Com o aceite, os contatos são liberados e a entrega é combinada fora da plataforma.
+6. Com o aceite, os contatos são liberados e a entrega é combinada pelo chat da troca.
 7. Ambos confirmam, a troca é concluída e os livros saem do catálogo.
