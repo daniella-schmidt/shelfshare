@@ -1,10 +1,11 @@
 {
   "services": {
     "backend": {
-      "root": "backend/",
-      "framework": "nestjs",
-      "entrypoint": "src/main.ts"
-    },
+        "root": "backend/",
+        "framework": "nestjs",
+        "entrypoint": "src/main.ts",
+        "installCommand": "npm install --include=dev"
+        },
     "frontend": {
       "root": "frontend/",
       "installCommand": "npm install --include=dev",
