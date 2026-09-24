@@ -1,10 +1,11 @@
 // ShelfShare — modelo de dados
 // Tres entidades: User, Book e Trade. O `status` de Book e Trade controla
 // todo o fluxo de troca do sistema. `Message` guarda o chat da troca.
+
 datasource db {
   provider  = "postgresql"
-  url       = env("postgresql://postgres.niexaejdtckvquqttojc:u3zZC"zW\b4QtpzJ0]5$ldXE@aws-0-[regiao].pooler.supabase.com:6543/postgres?pgbouncer=true")   // pooled — usado em runtime (Vercel)
-  directUrl = env("postgresql://postgres.niexaejdtckvquqttojc:u3zZC"zW\b4QtpzJ0]5$ldXE@aws-0-[regiao].pooler.supabase.com:5432/postgres")     // direto — usado só pelo CLI (migrate)
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
