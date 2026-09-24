@@ -1,16 +1,12 @@
 {
-  "services": {
+  "experimentalServices": {
     "frontend": {
-      "root": "frontend",
-      "framework": "vite",
-      "buildCommand": "npm run build",
-      "outputDirectory": "dist"
+      "entrypoint": "frontend",
+      "routePrefix": "/"
     },
     "backend": {
-      "root": "backend",
-      "framework": "nestjs",
-      "buildCommand": "npm run build",
-      "entrypoint": "dist/main.js"
+      "entrypoint": "backend/src/main.ts",
+      "routePrefix": "/api"
     }
   },
   "rewrites": [
