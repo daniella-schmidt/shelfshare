@@ -12,11 +12,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "postgresql"
-  // A URL de conexao fica em prisma.config.ts — exigencia do Prisma 7.
-}
-
 // ----------------------------------------------------------------- enums
 
 enum BookCondition {
