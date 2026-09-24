@@ -3,12 +3,7 @@
     "backend": {
       "root": "backend/",
       "framework": "nestjs",
-      "entrypoint": "src/main.ts",
-      "functions": {
-        "src/main.ts": {
-          "includeFiles": "node_modules/reflect-metadata/**"
-        }
-      }
+      "entrypoint": "src/main.ts"
     },
     "frontend": {
       "root": "frontend/",
