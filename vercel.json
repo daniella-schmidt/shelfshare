@@ -2,10 +2,9 @@
   "services": {
     "backend": {
         "root": "backend/",
-        "installCommand": "npm install --include=dev",
-        "buildCommand": "npm run build",
-        "outputDirectory": "dist",
-        "entrypoint": "dist/main.js"
+        "framework": "nestjs",
+        "entrypoint": "src/main.ts",
+        "installCommand": "npm install --include=dev"
         },
     "frontend": {
       "root": "frontend/",
