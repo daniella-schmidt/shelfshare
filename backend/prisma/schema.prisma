@@ -3,9 +3,7 @@
 // todo o fluxo de troca do sistema. `Message` guarda o chat da troca.
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 generator client {
