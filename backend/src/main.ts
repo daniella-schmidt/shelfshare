@@ -1,8 +1,7 @@
-import 'reflect-metadata';
-import 'dotenv/config';
-
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import 'reflect-metadata';
+import 'dotenv/config';
 
 import { AppModule } from './app.module';
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
@@ -11,7 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api'); 
-  
+
   // O frontend roda em outra porta (5173), entao precisa de CORS liberado.
   app.enableCors({
     origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
