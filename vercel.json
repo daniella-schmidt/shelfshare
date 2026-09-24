@@ -1,26 +1,21 @@
 {
-  "experimentalServices": {
-    "frontend": {
-      "entrypoint": "frontend",
-      "routePrefix": "/"
-    },
+  "services": {
     "backend": {
-      "entrypoint": "backend/src/main.ts",
-      "routePrefix": "/api"
+      "root": "backend/",
+      "installCommand": "npm install",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist",
+      "entrypoint": "dist/main.js"
+    },
+    "frontend": {
+      "root": "frontend/",
+      "installCommand": "npm install",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist"
     }
   },
   "rewrites": [
-    {
-      "source": "/api(/.*)?",
-      "destination": {
-        "service": "backend"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "frontend"
-      }
-    }
+    { "source": "/api/(.*)", "destination": { "service": "backend" } },
+    { "source": "/(.*)", "destination": { "service": "frontend" } }
   ]
 }
