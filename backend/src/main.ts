@@ -13,7 +13,10 @@ async function bootstrap() {
 
   // O frontend roda em outra porta (5173), entao precisa de CORS liberado.
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+    origin: [
+      'https://shelfshare-tan.vercel.app',
+      'https://shelfshare-git-main-daniella-schmidts-projects.vercel.app',
+    ],
     credentials: true,
   });
 
