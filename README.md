@@ -57,28 +57,29 @@ para se adaptar ao ambiente serverless.
 ---
 
 ## Estrutura do repositório
+```
 shelfshare/
-├─ frontend/ aplicação React + Vite
-│ ├─ src/
-│ │ ├─ api/ chamadas HTTP ao backend
-│ │ ├─ controllers/ hooks com estado e regra de tela
-│ │ ├─ contexts/ estado global (autenticação, chat, acessibilidade)
-│ │ ├─ components/ componentes reutilizáveis
-│ │ ├─ pages/ uma tela por rota
-│ │ └─ types/ interfaces compartilhadas
-│ ├─ .env.example
-│ └─ README.md documentação detalhada do frontend
-├─ backend/ API NestJS
-│ ├─ prisma/ schema e migrations
-│ ├─ src/
-│ │ ├─ common/ guards, decorators, filtros de erro
-│ │ └─ modules/ auth, users, books, catalog, trades
-│ ├─ .env.example
-│ └─ README.md documentação detalhada do backend
-├─ vercel.json configuração dos dois serviços na Vercel
+├─ frontend/            aplicação React + Vite
+│  ├─ src/
+│  │  ├─ api/           chamadas HTTP ao backend
+│  │  ├─ controllers/   hooks com estado e regra de tela
+│  │  ├─ contexts/      estado global (autenticação, chat, acessibilidade)
+│  │  ├─ components/    componentes reutilizáveis
+│  │  ├─ pages/         uma tela por rota
+│  │  └─ types/         interfaces compartilhadas
+│  ├─ .env.example
+│  └─ README.md         documentação detalhada do frontend
+├─ backend/             API NestJS
+│  ├─ prisma/           schema e migrations
+│  ├─ src/
+│  │  ├─ common/        guards, decorators, filtros de erro
+│  │  └─ modules/       auth, users, books, catalog, trades
+│  ├─ .env.example
+│  └─ README.md         documentação detalhada do backend
+├─ vercel.json          configuração dos dois serviços na Vercel
 ├─ .gitignore
 └─ README.md
-
+```
 
 Documentação detalhada de cada parte: [frontend](frontend/README.md) e
 [backend](backend/README.md) — incluindo rotas, variáveis de ambiente e o
