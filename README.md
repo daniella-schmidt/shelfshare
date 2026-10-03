@@ -16,7 +16,7 @@ Professor: Roberson Junior Fernandes Alves
 | --- | --- |
 | Website | https://shelfshare-tan.vercel.app |
 | API | https://shelfshare-tan.vercel.app/api |
-| Vídeo de apresentação | a publicar |
+| Vídeo de apresentação | https://drive.google.com/file/d/1bSrboNElA-aK44k_6X2c5c87mHkEAKp-/view?usp=sharing |
 | Repositório | https://github.com/daniella-schmidt/shelfshare |
 
 O deploy foi feito na **Vercel**, com frontend e backend sob o mesmo domínio: o
